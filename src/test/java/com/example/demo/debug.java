@@ -10,9 +10,13 @@ import com.alibaba.excel.write.style.column.LongestMatchColumnWidthStyleStrategy
 import com.example.data.ExcelData;
 import com.example.data.SingleData;
 import com.example.listener.DemoListener;
+import com.example.listener.MyCellWriteHandler;
+import com.example.listener.MyMergeStrategy;
 import net.bytebuddy.implementation.auxiliary.AuxiliaryType;
 import org.apache.commons.io.FileUtils;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.omg.CORBA.OBJ_ADAPTER;
+import org.omg.CORBA.UNKNOWN;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.slf4j.Logger;
@@ -236,16 +240,91 @@ public class debug {
         List<String> data2 = new ArrayList<>();
         data2.add("333为什么没写进去");
         data2.add("444为什么没写进去");
+        List<String> data3 = new ArrayList<>();
+        data3.add("555为什么没写进去");
+        data3.add("666为什么没写进去");
         dataList.add(data1);
         dataList.add(data2);
+        dataList.add(data3);
+
+
+        CellRangeAddress cellRangeAddress = new CellRangeAddress(1,2,0,1);
+        List<CellRangeAddress> cellRangeAddresses = new ArrayList<>();
+        cellRangeAddresses.add(cellRangeAddress);
+        MyMergeStrategy myMergeStrategy = new MyMergeStrategy(cellRangeAddresses);
 //        writer.write(data,sheet);
 //        writer.finish();
 //        out.close();
-        EasyExcel.write(fileName).sheet("test").doWrite(dataList);
+        EasyExcel.write(fileName).sheet("test").registerWriteHandler(myMergeStrategy).doWrite(dataList);
+    }
+
+    public List<CellRangeAddress> getMergeCellRangeAddresses(int rowCount){
+//        头部
+        CellRangeAddress cellRangeAddress1 = new CellRangeAddress(0,0,0,1);
+        CellRangeAddress cellRangeAddress2 = new CellRangeAddress(1,1,0,1);
+        CellRangeAddress cellRangeAddress3 = new CellRangeAddress(2,2,0,7);
+        CellRangeAddress cellRangeAddress4 = new CellRangeAddress(5,5,1,3);
+
+//        尾部
+//        CellRangeAddress cellRangeAddress5 = new CellRangeAddress(rowCount-12,rowCount-12,1,4);
+//        CellRangeAddress cellRangeAddress6 = new CellRangeAddress(rowCount-9,rowCount-9,0,6);
+//        CellRangeAddress cellRangeAddress7 = new CellRangeAddress(rowCount-8,rowCount-8,0,7);
+//        CellRangeAddress cellRangeAddress8 = new CellRangeAddress(rowCount-7,rowCount-7,0,7);
+//        CellRangeAddress cellRangeAddress9 = new CellRangeAddress(rowCount-5,rowCount-5,0,7);
+//        CellRangeAddress cellRangeAddress10 = new CellRangeAddress(rowCount-4,rowCount-4,0,7);
+//        CellRangeAddress cellRangeAddress11 = new CellRangeAddress(rowCount-3,rowCount-3,0,7);
+//        CellRangeAddress cellRangeAddress12 = new CellRangeAddress(rowCount-2,rowCount-2,0,7);
+//        CellRangeAddress cellRangeAddress13 = new CellRangeAddress(rowCount-1,rowCount-1,0,10);
+        List<CellRangeAddress> cellRangeAddresses = new ArrayList<>();
+        cellRangeAddresses.add(cellRangeAddress1);
+        cellRangeAddresses.add(cellRangeAddress2);
+        cellRangeAddresses.add(cellRangeAddress3);
+        cellRangeAddresses.add(cellRangeAddress4);
+//        cellRangeAddresses.add(cellRangeAddress5);
+//        cellRangeAddresses.add(cellRangeAddress6);
+//        cellRangeAddresses.add(cellRangeAddress7);
+//        cellRangeAddresses.add(cellRangeAddress8);
+//        cellRangeAddresses.add(cellRangeAddress9);
+//        cellRangeAddresses.add(cellRangeAddress10);
+//        cellRangeAddresses.add(cellRangeAddress11);
+//        cellRangeAddresses.add(cellRangeAddress12);
+//        cellRangeAddresses.add(cellRangeAddress13);
+
+
+
+        return cellRangeAddresses;
+    }
+
+
+    public Map<Integer,List<Integer>> getStyleCellAddress(){
+        Map<Integer,List<Integer>> map = new HashMap<>();
+        List<Integer> row1 = new ArrayList<>();
+        row1.add(2);
+        row1.add(4);
+        row1.add(6);
+        row1.add(7);
+        map.put(0,row1);
+
+        List<Integer> row2 = new ArrayList<>();
+        row2.add(2);
+        row2.add(4);
+        row2.add(5);
+        row2.add(6);
+        map.put(1,row2);
+
+        List<Integer> row5 = new ArrayList<>();
+        row5.add(7);
+        map.put(4,row5);
+
+
+
+        return map;
     }
 
     @Test
     public void testToExcel() {
+//        设置单元格的背景颜色
+        MyCellWriteHandler myCellWriteHandler = new MyCellWriteHandler(getStyleCellAddress());
         String fileName = "/Users/edz/IdeaProjects/demo/driver/职工缴费.xls";
 //        读初始文件
         EasyExcel.read(fileName, ExcelData.class, new DemoListener()).sheet().headRowNumber(0).doRead();
@@ -295,9 +374,14 @@ public class debug {
             excelData.addAll(SingleData.getPreData());
             excelData.addAll(totalDataList);
             excelData.addAll(value);
+
             excelData.addAll(SingleData.getPostData());
             String outFileName = "/Users/edz/IdeaProjects/demo/driver/out/职工缴费_"+ key + ".xls";
-            EasyExcel.write(outFileName,ExcelData.class).sheet("data").needHead(false).doWrite(excelData);
+            //        获取单元格合并策略
+            MyMergeStrategy myMergeStrategy = new MyMergeStrategy(getMergeCellRangeAddresses(excelData.size()));
+            EasyExcel.write(outFileName,ExcelData.class).sheet("data").needHead(false).
+                    registerWriteHandler(myMergeStrategy).
+                    doWrite(excelData);
         });
     }
 

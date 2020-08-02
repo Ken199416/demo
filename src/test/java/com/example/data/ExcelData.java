@@ -1,9 +1,8 @@
 package com.example.data;
 
-import com.alibaba.excel.annotation.format.NumberFormat;
 import com.alibaba.excel.annotation.write.style.ColumnWidth;
 import com.alibaba.excel.annotation.write.style.ContentRowHeight;
-import com.alibaba.excel.annotation.write.style.HeadRowHeight;
+import com.alibaba.excel.write.merge.*;
 import lombok.Data;
 
 /**

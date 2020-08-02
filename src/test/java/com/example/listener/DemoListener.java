@@ -4,6 +4,7 @@ import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.example.data.ExcelData;
 import com.example.data.SingleData;
+import org.apache.poi.util.StringUtil;
 import org.junit.platform.commons.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +38,7 @@ public class DemoListener extends AnalysisEventListener<ExcelData> {
             endExcelData1.setNo("结束");
             endExcelData1.setName("如果在提交表单时本行以上部分存在空行，请将空行删除。");
             ExcelData endExcelData2 = new ExcelData();
+//            如果是"",此行会被忽略
             endExcelData2.setNo(" ");
             SingleData.setPostData(endExcelData1);
             SingleData.setPostData(endExcelData2);
@@ -44,7 +46,10 @@ public class DemoListener extends AnalysisEventListener<ExcelData> {
 //            处理分组数据，合计的行数被记录了，并且大于合并的行数，并且结束的行数还没有被记录
             SingleData.setExcelData(excelData);
         }else if (SingleData.endRowNum != 0){
-//            处理模板结束的数据，当结束的行数被记录时
+//            处理模板结束的数据，当结束的行数被记录时,如果第一列是空的  要给" " 否则会清除这一行
+            if (StringUtils.isBlank(excelData.getNo())){
+                excelData.setNo("meiyou");
+            }
             SingleData.setPostData(excelData);
         }
     }
